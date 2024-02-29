@@ -19,73 +19,73 @@ function run() {
         if (found !== undefined) {
             console.log(found.Name, '/', found.Album, '/', found.Rating);
             if ('Rating' in found) {
-                allTracks[i].rating = found.Rating
+                allTracks[i].rating = found.Rating;
             }
             if ('Disabled' in found) {
-                allTracks[i].enabled = false
+                allTracks[i].enabled = false;
             }
             if ('Play Count' in found) {
-                allTracks[i].playedCount = found['Play Count']
+                allTracks[i].playedCount = found['Play Count'];
             }
             if ('Volume Adjustment' in found) {
-                allTracks[i].volumeAdjustment = found['Volume Adjustment']
+                allTracks[i].volumeAdjustment = found['Volume Adjustment'];
             }
         }
     }
 }
 
 function readXML(filename) {
-    let app = Application.currentApplication()
-    app.includeStandardAdditions = true
+    let app = Application.currentApplication();
+    app.includeStandardAdditions = true;
     let xmldata = $.NSString.stringWithContentsOfFileEncodingError(
         $(filename).stringByStandardizingPath,
         $.NSUTF8StringEncoding,
         $()
     ).js
 
-    let xmlDoc = $.NSXMLDocument.alloc.initWithXMLStringOptionsError(xmldata, 0, null)
-    let xmlRoot = xmlDoc.rootElement
-    let xmlBody = ObjC.unwrap(xmlRoot.children)[0]
-    let xmlList =  ObjC.unwrap(xmlBody.children)
+    let xmlDoc = $.NSXMLDocument.alloc.initWithXMLStringOptionsError(xmldata, 0, null);
+    let xmlRoot = xmlDoc.rootElement;
+    let xmlBody = ObjC.unwrap(xmlRoot.children)[0];
+    let xmlList =  ObjC.unwrap(xmlBody.children);
 
-    let trackList = []
+    let trackList = [];
     for (let i = 0; i < xmlList.length; i++) {
-        let xmlNode = xmlList[i]
-        let name = ObjC.unwrap(xmlNode.name)
+        let xmlNode = xmlList[i];
+        let name = ObjC.unwrap(xmlNode.name);
         if (name == 'dict') {
             let xmlTracks = ObjC.unwrap(xmlNode.children).filter(
                 t => ObjC.unwrap(t.name) == 'dict');
             for (let j = 0; j < xmlTracks.length; j++) {
-                let track = parseTrack(ObjC.unwrap(xmlTracks[j].children))
-                trackList.push(track)
+                let track = parseTrack(ObjC.unwrap(xmlTracks[j].children));
+                trackList.push(track);
             }
         }
     }
-    return trackList
+    return trackList;
 }
 
 function parseTrack(xmlTrack) {
-    let track = {}
-    let key = ''
+    let track = {};
+    let key = '';
     for (let i = 0; i < xmlTrack.length; i++) {
-        let xmlNode = xmlTrack[i]
-        let name = ObjC.unwrap(xmlNode.name)
+        let xmlNode = xmlTrack[i];
+        let name = ObjC.unwrap(xmlNode.name);
         switch (name) {
         case 'key':
-            key = ObjC.unwrap(xmlNode.stringValue)
+            key = ObjC.unwrap(xmlNode.stringValue);
             break;
         case 'integer':
-            track[key] = ObjC.unwrap(xmlNode.objectValue)
+            track[key] = ObjC.unwrap(xmlNode.objectValue);
             break;
         case 'string':
-            track[key] = ObjC.unwrap(xmlNode.stringValue)
+            track[key] = ObjC.unwrap(xmlNode.stringValue);
             break;
         default:
             if (key == 'Disabled') {
-                track[key] = name
+                track[key] = name;
             }
             break;
         }
     }
-    return track
+    return track;
 }

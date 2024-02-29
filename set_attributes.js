@@ -1,39 +1,62 @@
+#!/usr/bin/env osascript -l JavaScript
+
 function run() {
     const filename = 'iTunes Music Library.xml';
+    let trackList = readXML(filename);
+    console.log('iTunes Tracks :', trackList.length);
 
-    var trackList = readXML(filename);
+    let musicApp = Application('Music');
+    let allTracks = musicApp.playlists[1].tracks;
 
-    console.log('Number of Tracks :', trackList.length)
-    for (var i = 0; i < trackList.length; i++) {
-        var track = trackList[i];
-        console.log(track['Name']);
+    for (let i = 0; i < allTracks.length; i++) {
+        let name = allTracks[i].name();
+        let album = allTracks[i].album();
+
+        let found = trackList.find((trk) => {
+            return trk.Name == name && trk.Album == album;
+        });
+
+        if (found !== undefined) {
+            console.log(found.Name, '/', found.Album, '/', found.Rating);
+            if ('Rating' in found) {
+                allTracks[i].rating = found.Rating
+            }
+            if ('Disabled' in found) {
+                allTracks[i].enabled = false
+            }
+            if ('Play Count' in found) {
+                allTracks[i].playedCount = found['Play Count']
+            }
+            if ('Volume Adjustment' in found) {
+                allTracks[i].volumeAdjustment = found['Volume Adjustment']
+            }
+        }
     }
 }
 
 function readXML(filename) {
-    var app = Application.currentApplication()
+    let app = Application.currentApplication()
     app.includeStandardAdditions = true
-    var xmldata = $.NSString.stringWithContentsOfFileEncodingError(
+    let xmldata = $.NSString.stringWithContentsOfFileEncodingError(
         $(filename).stringByStandardizingPath,
         $.NSUTF8StringEncoding,
         $()
     ).js
 
-    var xmlDoc = $.NSXMLDocument.alloc.initWithXMLStringOptionsError(xmldata, 0, null)
-    var xmlRoot = xmlDoc.rootElement
-    var xmlBody = ObjC.unwrap(xmlRoot.children)[0]
-    var xmlList =  ObjC.unwrap(xmlBody.children)
+    let xmlDoc = $.NSXMLDocument.alloc.initWithXMLStringOptionsError(xmldata, 0, null)
+    let xmlRoot = xmlDoc.rootElement
+    let xmlBody = ObjC.unwrap(xmlRoot.children)[0]
+    let xmlList =  ObjC.unwrap(xmlBody.children)
 
-    var trackList = []
-    for (var i = 0; i < xmlList.length; i++) {
-        var xmlNode = xmlList[i]
-        var name = ObjC.unwrap(xmlNode.name)
+    let trackList = []
+    for (let i = 0; i < xmlList.length; i++) {
+        let xmlNode = xmlList[i]
+        let name = ObjC.unwrap(xmlNode.name)
         if (name == 'dict') {
-            var xmlTracks = ObjC.unwrap(xmlNode.children).filter(
+            let xmlTracks = ObjC.unwrap(xmlNode.children).filter(
                 t => ObjC.unwrap(t.name) == 'dict');
-            for (var j = 0; j < xmlTracks.length; j++) {
-            //for (var j = 0; j < 10; j++) {
-                var track = parseTrack(ObjC.unwrap(xmlTracks[j].children))
+            for (let j = 0; j < xmlTracks.length; j++) {
+                let track = parseTrack(ObjC.unwrap(xmlTracks[j].children))
                 trackList.push(track)
             }
         }
@@ -42,23 +65,23 @@ function readXML(filename) {
 }
 
 function parseTrack(xmlTrack) {
-    var track = {}
-    var key = ''
-    for (var i = 0; i < xmlTrack.length; i++) {
-        var xmlNode = xmlTrack[i]
-        var name = ObjC.unwrap(xmlNode.name)
+    let track = {}
+    let key = ''
+    for (let i = 0; i < xmlTrack.length; i++) {
+        let xmlNode = xmlTrack[i]
+        let name = ObjC.unwrap(xmlNode.name)
         switch (name) {
         case 'key':
             key = ObjC.unwrap(xmlNode.stringValue)
             break;
         case 'integer':
-            track[key] = ObjC.unwrap(xmlNode.integerValue)
+            track[key] = ObjC.unwrap(xmlNode.objectValue)
             break;
         case 'string':
             track[key] = ObjC.unwrap(xmlNode.stringValue)
             break;
         default:
-            if (key == 'Disabled' && name == 'true') {
+            if (key == 'Disabled') {
                 track[key] = name
             }
             break;

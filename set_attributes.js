@@ -24,8 +24,9 @@ function run() {
             if ('Disabled' in found) {
                 allTracks[i].enabled = false;
             }
-            if ('Play Count' in found) {
+            if ('Play Count' in found && 'Play Date UTC' in found) {
                 allTracks[i].playedCount = found['Play Count'];
+                allTracks[i].playedDate = found['Play Date UTC'];
             }
             if ('Volume Adjustment' in found) {
                 // The range on the iTunes and Music UI is from -100% to 100%,
@@ -82,6 +83,10 @@ function parseTrack(xmlTrack) {
             break;
         case 'string':
             track[key] = ObjC.unwrap(xmlNode.stringValue);
+            break;
+        case 'date':
+            const date_str = ObjC.unwrap(xmlNode.stringValue);
+            track[key] = new Date(date_str);
             break;
         default:
             if (key == 'Disabled') {

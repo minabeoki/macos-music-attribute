@@ -17,7 +17,7 @@ function run() {
         });
 
         if (found !== undefined) {
-            console.log(found.Name, '/', found.Album, '/', found.Rating);
+            console.log(found.Name, '/', found.Album);
             if ('Rating' in found) {
                 allTracks[i].rating = found.Rating;
             }
@@ -28,7 +28,10 @@ function run() {
                 allTracks[i].playedCount = found['Play Count'];
             }
             if ('Volume Adjustment' in found) {
-                allTracks[i].volumeAdjustment = found['Volume Adjustment'];
+                // The range on the iTunes and Music UI is from -100% to 100%,
+                // but internal value may be from -255 to 255.
+                let vol = found['Volume Adjustment'] * 100 / 255;
+                allTracks[i].volumeAdjustment = vol;
             }
         }
     }

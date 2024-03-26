@@ -79,7 +79,7 @@ function parseTrack(xmlTrack) {
             key = ObjC.unwrap(xmlNode.stringValue);
             break;
         case 'integer':
-            track[key] = ObjC.unwrap(xmlNode.objectValue);
+            track[key] = Number(ObjC.unwrap(xmlNode.objectValue));
             break;
         case 'string':
             track[key] = ObjC.unwrap(xmlNode.stringValue);
